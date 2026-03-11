@@ -15,6 +15,10 @@ struct GarageKeepApp: App {
         CommandLine.arguments.contains("--show-onboarding")
     }
 
+    private var showMockVehicles: Bool {
+        CommandLine.arguments.contains("--mock-vehicles")
+    }
+
     init() {
         if CommandLine.arguments.contains("--clear-keychain") {
             KeychainHelper.clearAll()
@@ -26,7 +30,7 @@ struct GarageKeepApp: App {
             if showOnboardingForTesting {
                 OnboardingContainerView(onVehicleAdded: {})
                     .interactiveDismissDisabled(true)
-            } else if authViewModel.isAuthenticated {
+            } else if showMockVehicles || authViewModel.isAuthenticated {
                 MainTabView()
                     .environment(authViewModel)
             } else {

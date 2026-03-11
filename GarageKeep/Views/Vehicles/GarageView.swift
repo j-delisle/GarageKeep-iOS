@@ -8,11 +8,32 @@ struct GarageView: View {
             Color.appBackground.ignoresSafeArea()
             content
         }
-        .navigationTitle("Garage")
-        .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color.appBackground, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        .task { await viewModel.fetchVehicles() }
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                GarageToolbarButton(systemImage: "person.fill") {}
+                    .accessibilityIdentifier("btn_profile")
+            }
+            ToolbarItem(placement: .principal) {
+                Text("Garage")
+                    .font(.system(.title3, design: .default, weight: .bold))
+                    .foregroundStyle(Color.textPrimary)
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                GarageToolbarButton(systemImage: "plus") {
+                    viewModel.showOnboarding = true
+                }
+                .accessibilityIdentifier("btn_add_vehicle")
+            }
+        }
+        .task {
+            if CommandLine.arguments.contains("--mock-vehicles") {
+                viewModel.loadMockVehicles()
+            } else {
+                await viewModel.fetchVehicles()
+            }
+        }
         .sheet(isPresented: $viewModel.showOnboarding) {
             OnboardingContainerView {
                 Task { await viewModel.fetchVehicles() }
@@ -47,14 +68,35 @@ struct GarageView: View {
             }
         } else {
             ScrollView {
-                LazyVStack(spacing: Spacing.sm) {
+                LazyVStack(spacing: Spacing.md) {
                     ForEach(viewModel.vehicles, id: \.id) { vehicle in
-                        VehicleRowView(vehicle: vehicle)
+                        NavigationLink(destination: Text("Detail — TODO")) {
+                            VehicleCardView(vehicle: vehicle)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.horizontal, Spacing.md)
                     }
                 }
-                .padding(Spacing.md)
+                .padding(.vertical, Spacing.md)
             }
         }
+    }
+}
+
+private struct GarageToolbarButton: View {
+    let systemImage: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.appBackground)
+                .frame(width: 34, height: 34)
+                .background(Color.appPrimary)
+                .clipShape(Circle())
+        }
+        .buttonStyle(.plain)
     }
 }
 
