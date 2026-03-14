@@ -136,6 +136,52 @@ final class APIClient {
         }
     }
 
+    func requestVoid(
+        _ path: String,
+        method: String = "DELETE",
+        requiresAuth: Bool = true
+    ) async throws {
+        guard let url = URL(string: baseURL + path) else { throw APIError.invalidURL }
+
+        var req = URLRequest(url: url)
+        req.httpMethod = method
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        if requiresAuth, let token = KeychainHelper.read(for: KeychainHelper.accessTokenKey) {
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        let (_, response): (Data, URLResponse)
+        do {
+            (_, response) = try await session.data(for: req)
+        } catch {
+            throw APIError.networkError(error)
+        }
+
+        guard let http = response as? HTTPURLResponse else {
+            throw APIError.networkError(URLError(.badServerResponse))
+        }
+
+        if http.statusCode == 401 {
+            if requiresAuth {
+                if let refreshed = try? await attemptTokenRefresh() {
+                    KeychainHelper.save(refreshed.accessToken, for: KeychainHelper.accessTokenKey)
+                    KeychainHelper.save(refreshed.refreshToken, for: KeychainHelper.refreshTokenKey)
+                    try await requestVoid(path, method: method, requiresAuth: requiresAuth)
+                    return
+                }
+                NotificationCenter.default.post(name: .sessionExpired, object: nil)
+                throw APIError.unauthorized
+            } else {
+                throw APIError.invalidCredentials
+            }
+        }
+
+        guard (200..<300).contains(http.statusCode) else {
+            throw APIError.serverError(http.statusCode)
+        }
+    }
+
     private func attemptTokenRefresh() async throws -> TokenResponse {
         guard let refreshToken = KeychainHelper.read(for: KeychainHelper.refreshTokenKey),
               let url = URL(string: baseURL + "/v1/auth/refresh") else {

@@ -3,6 +3,7 @@ import SwiftUI
 struct OnboardingContainerView: View {
     @State private var viewModel = AddVehicleViewModel()
     @Environment(\.dismiss) private var dismiss
+    let vehicleCount: Int
     let onVehicleAdded: () -> Void
 
     var body: some View {
@@ -29,15 +30,27 @@ struct OnboardingContainerView: View {
     // MARK: - Header
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            Text(stepTitle)
-                .font(.title2.weight(.semibold))
-                .foregroundStyle(Color.textPrimary)
-            Text(stepSubtitle)
-                .font(.subheadline)
-                .foregroundStyle(Color.textSecondary)
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                Text(stepTitle)
+                    .font(.title2.weight(.semibold))
+                    .foregroundStyle(Color.textPrimary)
+                Text(stepSubtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(Color.textSecondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if vehicleCount > 1 {
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(Color.textSecondary)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("btn_close_add_vehicle")
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var stepTitle: String {
@@ -97,5 +110,5 @@ struct OnboardingContainerView: View {
 }
 
 #Preview {
-    OnboardingContainerView(onVehicleAdded: {})
+    OnboardingContainerView(vehicleCount: 0, onVehicleAdded: {})
 }

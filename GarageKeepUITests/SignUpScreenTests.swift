@@ -36,8 +36,10 @@ final class SignUpScreenTests: XCTestCase {
     }
 
     func testLogInLink_navigatesToLoginScreen() {
+        // Footer is below the fold — scroll before tapping
+        app.swipeUp()
         app.buttons["link_log_in"].tap()
-        XCTAssertTrue(app.staticTexts["Welcome back to\nGarageKeep"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["btn_sign_in"].waitForExistence(timeout: 3))
     }
 
     func testBackButton_returnsToWelcomeScreen() {

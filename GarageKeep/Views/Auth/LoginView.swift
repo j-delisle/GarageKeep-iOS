@@ -128,7 +128,7 @@ struct LoginView: View {
                 .font(.subheadline)
                 .foregroundStyle(Color.textSecondary)
             Button("Create Account") {
-                path = NavigationPath([AuthRoute.signUp])
+                path.append(AuthRoute.signUp)
             }
             .font(.subheadline.weight(.semibold))
             .foregroundStyle(Color.appPrimary)

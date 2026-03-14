@@ -28,7 +28,7 @@ struct GarageKeepApp: App {
     var body: some Scene {
         WindowGroup {
             if showOnboardingForTesting {
-                OnboardingContainerView(onVehicleAdded: {})
+                OnboardingContainerView(vehicleCount: 0, onVehicleAdded: {})
                     .interactiveDismissDisabled(true)
             } else if showMockVehicles || authViewModel.isAuthenticated {
                 MainTabView()

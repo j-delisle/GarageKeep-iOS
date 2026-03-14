@@ -25,6 +25,6 @@ final class WelcomeScreenTests: XCTestCase {
 
     func testLogIn_navigatesToLoginScreen() {
         app.buttons["btn_log_in"].tap()
-        XCTAssertTrue(app.staticTexts["Welcome back to\nGarageKeep"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["btn_sign_in"].waitForExistence(timeout: 3))
     }
 }

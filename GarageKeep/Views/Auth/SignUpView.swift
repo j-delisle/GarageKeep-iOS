@@ -146,7 +146,7 @@ struct SignUpView: View {
                 .font(.subheadline)
                 .foregroundStyle(Color.textSecondary)
             Button("Log In") {
-                path = NavigationPath([AuthRoute.login])
+                path.append(AuthRoute.login)
             }
             .font(.subheadline.weight(.semibold))
             .foregroundStyle(Color.appPrimary)

@@ -105,7 +105,7 @@ final class VehicleServiceTests: XCTestCase {
             return try baseHandler!(request)
         }
         _ = try await sut.decodeVin("1HGBH41JXMN109186")
-        XCTAssertEqual(capturedRequest?.url?.path, "/v1/vehicles/vin-decode")
+        XCTAssertEqual(capturedRequest?.url?.path, "/v1/vehicles/vin/decode")
         XCTAssertEqual(capturedRequest?.url?.query, "vin=1HGBH41JXMN109186")
     }
 

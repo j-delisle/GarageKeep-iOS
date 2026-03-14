@@ -4,29 +4,17 @@ struct GarageView: View {
     @State private var viewModel = GarageViewModel()
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottomTrailing) {
             Color.appBackground.ignoresSafeArea()
             content
+            AddVehicleFAB {
+                viewModel.showOnboarding = true
+            }
+            .padding(.trailing, Spacing.md)
+            .padding(.bottom, Spacing.md)
         }
         .toolbarBackground(Color.appBackground, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                GarageToolbarButton(systemImage: "person.fill") {}
-                    .accessibilityIdentifier("btn_profile")
-            }
-            ToolbarItem(placement: .principal) {
-                Text("Garage")
-                    .font(.system(.title3, design: .default, weight: .bold))
-                    .foregroundStyle(Color.textPrimary)
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                GarageToolbarButton(systemImage: "plus") {
-                    viewModel.showOnboarding = true
-                }
-                .accessibilityIdentifier("btn_add_vehicle")
-            }
-        }
         .task {
             if CommandLine.arguments.contains("--mock-vehicles") {
                 viewModel.loadMockVehicles()
@@ -35,10 +23,10 @@ struct GarageView: View {
             }
         }
         .sheet(isPresented: $viewModel.showOnboarding) {
-            OnboardingContainerView {
+            OnboardingContainerView(vehicleCount: viewModel.vehicles.count) {
                 Task { await viewModel.fetchVehicles() }
             }
-            .interactiveDismissDisabled(true)
+            .interactiveDismissDisabled(viewModel.vehicles.isEmpty)
         }
     }
 
@@ -70,7 +58,7 @@ struct GarageView: View {
             ScrollView {
                 LazyVStack(spacing: Spacing.md) {
                     ForEach(viewModel.vehicles, id: \.id) { vehicle in
-                        NavigationLink(destination: Text("Detail — TODO")) {
+                        NavigationLink(destination: ServiceHistoryView(vehicle: vehicle)) {
                             VehicleCardView(vehicle: vehicle)
                         }
                         .buttonStyle(.plain)
@@ -83,20 +71,21 @@ struct GarageView: View {
     }
 }
 
-private struct GarageToolbarButton: View {
-    let systemImage: String
+private struct AddVehicleFAB: View {
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.system(size: 14, weight: .semibold))
+            Image(systemName: "plus")
+                .font(.system(size: 22, weight: .semibold))
                 .foregroundStyle(Color.appBackground)
-                .frame(width: 34, height: 34)
+                .frame(width: 56, height: 56)
                 .background(Color.appPrimary)
                 .clipShape(Circle())
+                .shadow(color: Color.appPrimary.opacity(0.4), radius: 12, x: 0, y: 4)
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("btn_add_vehicle")
     }
 }
 

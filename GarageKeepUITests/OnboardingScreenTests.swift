@@ -71,6 +71,10 @@ final class OnboardingScreenTests: XCTestCase {
         app.textFields["field_model"].tap()
         app.textFields["field_model"].typeText("Civic")
 
+        // Dismiss keyboard — btn_continue is behind it; typeText("\n") presses
+        // return on the focused field without locating the keyboard button in the AX tree
+        app.textFields["field_model"].typeText("\n")
+
         app.buttons["btn_continue"].tap()
 
         XCTAssertTrue(app.staticTexts["Confirm Details"].waitForExistence(timeout: 3))
@@ -80,6 +84,14 @@ final class OnboardingScreenTests: XCTestCase {
 
     // MARK: - Review Step
 
+    // MARK: - Close Button
+
+    func testCloseButton_notVisible_duringOnboarding() {
+        // Launched with --show-onboarding (0 vehicles) — close button must not appear
+        XCTAssertTrue(app.staticTexts["Add Your Vehicle"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["btn_close_add_vehicle"].exists)
+    }
+
     func testGoBack_returnsToIdentityStep() {
         app.buttons["Manual"].tap()
         XCTAssertTrue(app.textFields["field_make"].waitForExistence(timeout: 2))
@@ -88,6 +100,8 @@ final class OnboardingScreenTests: XCTestCase {
         app.textFields["field_make"].typeText("Honda")
         app.textFields["field_model"].tap()
         app.textFields["field_model"].typeText("Civic")
+        app.textFields["field_model"].typeText("\n")
+
         app.buttons["btn_continue"].tap()
 
         XCTAssertTrue(app.buttons["btn_go_back"].waitForExistence(timeout: 3))
@@ -104,8 +118,17 @@ final class OnboardingScreenTests: XCTestCase {
         app.textFields["field_make"].typeText("Toyota")
         app.textFields["field_model"].tap()
         app.textFields["field_model"].typeText("Camry")
+        // Dismiss regular keyboard before tapping field_year (at keyboard edge)
+        app.textFields["field_model"].typeText("\n")
+
         app.textFields["field_year"].tap()
         app.textFields["field_year"].typeText("2023")
+
+        // field_year uses .numberPad — no return key. Transfer focus to field_make
+        // (regular keyboard) then dismiss with "\n".
+        app.textFields["field_make"].tap()
+        app.textFields["field_make"].typeText("\n")
+
         app.buttons["btn_continue"].tap()
 
         XCTAssertTrue(app.staticTexts["Toyota"].waitForExistence(timeout: 3))

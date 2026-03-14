@@ -13,7 +13,7 @@ struct MainTabView: View {
 
             Tab("Service", systemImage: "wrench.and.screwdriver.fill") {
                 NavigationStack {
-                    placeholderScreen("Service")
+                    ServiceTabView()
                 }
             }
 

@@ -102,7 +102,7 @@ struct VehicleCardView: View {
     private func actionButton(for status: VehicleStatus) -> some View {
         switch status {
         case .active:
-            Button("Details") {}
+            Button("Add Service") {}
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(Color.appPrimary)
                 .padding(.horizontal, Spacing.md)
@@ -112,7 +112,7 @@ struct VehicleCardView: View {
                         .stroke(Color.appPrimary, lineWidth: 1.5)
                 )
                 .buttonStyle(.plain)
-                .accessibilityIdentifier("btn_vehicle_details")
+                .accessibilityIdentifier("btn_add_service")
         case .alert:
             Button("Fix Issue") {}
                 .font(.system(size: 13, weight: .semibold))
