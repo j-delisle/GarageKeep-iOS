@@ -12,6 +12,9 @@ final class MockServiceEventService: ServiceEventServiceProtocol {
     private(set) var lastFetchVehicleId: UUID?
     private(set) var lastFetchLimit: Int?
     private(set) var lastFetchOffset: Int?
+    private(set) var createCallCount = 0
+    private(set) var lastCreatedVehicleId: UUID?
+    private(set) var lastCreatedRequest: CreateServiceEventRequest?
     private(set) var deleteCallCount = 0
     private(set) var lastDeletedServiceId: UUID?
 
@@ -24,7 +27,10 @@ final class MockServiceEventService: ServiceEventServiceProtocol {
     }
 
     func createServiceEvent(vehicleId: UUID, request: CreateServiceEventRequest) async throws -> ServiceEventResponse {
-        try createResult.get()
+        createCallCount += 1
+        lastCreatedVehicleId = vehicleId
+        lastCreatedRequest = request
+        return try createResult.get()
     }
 
     func deleteServiceEvent(serviceId: UUID) async throws {

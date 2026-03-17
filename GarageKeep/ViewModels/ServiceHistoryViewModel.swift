@@ -79,6 +79,12 @@ import Foundation
         }
     }
 
+    func appendEvent(_ event: ServiceEventResponse) {
+        events.insert(event, at: 0)
+        totalCount += 1
+        currentOffset += 1
+    }
+
     func loadMockEvents() {
         events = ServiceEventResponse.stubs
         totalCount = ServiceEventResponse.stubs.count

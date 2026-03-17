@@ -3,6 +3,7 @@ import SwiftUI
 struct ServiceHistoryView: View {
     let vehicle: VehicleResponse
     @State private var viewModel: ServiceHistoryViewModel
+    @State private var showAddService = false
 
     init(vehicle: VehicleResponse) {
         self.vehicle = vehicle
@@ -13,9 +14,14 @@ struct ServiceHistoryView: View {
         ZStack(alignment: .bottomTrailing) {
             Color.appBackground.ignoresSafeArea()
             mainContent
-            AddServiceFAB()
+            AddServiceFAB { showAddService = true }
                 .padding(.trailing, Spacing.md)
                 .padding(.bottom, Spacing.md)
+        }
+        .fullScreenCover(isPresented: $showAddService) {
+            AddServiceContainerView(vehicle: vehicle) { event in
+                viewModel.appendEvent(event)
+            }
         }
         .navigationTitle("Service History")
         .navigationBarTitleDisplayMode(.inline)
@@ -303,10 +309,10 @@ private struct UpcomingPlaceholderCardView: View {
 // MARK: - Add Service FAB
 
 private struct AddServiceFAB: View {
+    let action: () -> Void
+
     var body: some View {
-        Button {
-            // TODO: present Add Service sheet
-        } label: {
+        Button(action: action) {
             Image(systemName: "plus")
                 .font(.system(size: 22, weight: .semibold))
                 .foregroundStyle(Color.appBackground)
