@@ -10,7 +10,7 @@ struct AddServiceReviewStepView: View {
                     .padding(.horizontal, Spacing.md)
                     .padding(.top, Spacing.md)
 
-                if viewModel.selectedImageData != nil {
+                if !viewModel.pendingAttachments.isEmpty {
                     receiptPreview
                         .padding(.horizontal, Spacing.md)
                 }
@@ -90,38 +90,41 @@ struct AddServiceReviewStepView: View {
     // MARK: - Receipt Preview
 
     private var receiptPreview: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("RECEIPT")
+        let count = viewModel.pendingAttachments.count
+        return VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text("RECEIPTS")
                 .font(.sectionHeader)
                 .foregroundStyle(Color.textSecondary)
                 .tracking(0.5)
 
-            HStack(spacing: Spacing.md) {
-                if let data = viewModel.selectedImageData,
-                   let uiImage = UIImage(data: data) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 56, height: 56)
-                        .clipShape(RoundedRectangle(cornerRadius: Radius.button))
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: Spacing.sm) {
+                        ForEach(viewModel.pendingAttachments) { attachment in
+                            if let uiImage = UIImage(data: attachment.data) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 56, height: 56)
+                                    .clipShape(RoundedRectangle(cornerRadius: Radius.button))
+                            }
+                        }
+                    }
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.top, Spacing.md)
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(viewModel.selectedImageName)
-                        .font(.bodyMd.weight(.medium))
-                        .foregroundStyle(Color.textPrimary)
-                        .lineLimit(1)
-                    Text("Image · Will be uploaded")
+                HStack {
+                    Text("\(count) receipt\(count == 1 ? "" : "s") · Will be uploaded")
                         .font(.labelSm)
                         .foregroundStyle(Color.textSecondary)
+                    Spacer()
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(Color.statusSuccess)
                 }
-
-                Spacer()
-
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(Color.statusSuccess)
+                .padding(.horizontal, Spacing.md)
+                .padding(.bottom, Spacing.md)
             }
-            .padding(Spacing.md)
             .background(Color.appSurface)
             .clipShape(RoundedRectangle(cornerRadius: Radius.card))
         }

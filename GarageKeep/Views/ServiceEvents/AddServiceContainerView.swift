@@ -142,10 +142,14 @@ struct AddServiceContainerView: View {
     private var primaryActionButton: some View {
         if viewModel.currentStep == .review {
             Button {
-                Task {
-                    if let event = await viewModel.submit() {
-                        onServiceAdded(event)
-                        dismiss()
+                if viewModel.isComplete {
+                    dismiss()
+                } else {
+                    Task {
+                        if let event = await viewModel.submit() {
+                            onServiceAdded(event)
+                            if !viewModel.attachmentFailed { dismiss() }
+                        }
                     }
                 }
             } label: {
@@ -155,7 +159,7 @@ struct AddServiceContainerView: View {
                     if viewModel.isLoading {
                         ProgressView().tint(.appBackground)
                     } else {
-                        Text("Confirm & Save")
+                        Text(viewModel.isComplete ? "Done" : "Confirm & Save")
                             .font(.buttonLabel)
                             .foregroundStyle(Color.appBackground)
                     }

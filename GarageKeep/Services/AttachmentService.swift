@@ -1,7 +1,7 @@
 import Foundation
 
 protocol AttachmentServiceProtocol {
-    func uploadAttachment(serviceId: UUID, data: Data, fileName: String, mimeType: String) async throws -> AttachmentResponse
+    func uploadAttachment(serviceId: UUID, data: Data, fileName: String) async throws -> AttachmentResponse
 }
 
 final class AttachmentService: AttachmentServiceProtocol {
@@ -50,25 +50,51 @@ final class AttachmentService: AttachmentServiceProtocol {
 
     // MARK: - Public
 
-    func uploadAttachment(serviceId: UUID, data: Data, fileName: String, mimeType: String) async throws -> AttachmentResponse {
+    func uploadAttachment(serviceId: UUID, data: Data, fileName: String) async throws -> AttachmentResponse {
+        let detectedMimeType = Self.mimeType(for: data)
+        print("[AttachmentUpload] detected mimeType=\(detectedMimeType) size=\(data.count)")
+
         // Step 1: Get presigned S3 upload URL from backend
-        let uploadUrlResponse = try await requestUploadUrl(serviceId: serviceId, fileName: fileName, mimeType: mimeType)
+        let uploadUrlResponse = try await requestUploadUrl(
+            serviceId: serviceId,
+            fileName: fileName,
+            mimeType: detectedMimeType,
+            fileSize: data.count
+        )
+        print("[AttachmentUpload] step1 OK — attachmentId=\(uploadUrlResponse.attachmentId) uploadUrl=\(uploadUrlResponse.uploadUrl)")
 
         // Step 2: Upload file directly to S3 (no auth header — uses presigned fields)
-        try await uploadToS3(uploadResponse: uploadUrlResponse, data: data, mimeType: mimeType)
+        try await uploadToS3(uploadResponse: uploadUrlResponse, data: data, mimeType: detectedMimeType)
+        print("[AttachmentUpload] step2 OK — S3 upload complete")
 
         // Step 3: Confirm upload with backend to persist the record
-        return try await confirmUpload(attachmentId: uploadUrlResponse.attachmentId)
+        let result = try await confirmUpload(attachmentId: uploadUrlResponse.attachmentId)
+        print("[AttachmentUpload] step3 OK — confirmed id=\(result.id)")
+        return result
+    }
+
+    // MARK: - MIME type detection
+
+    private static func mimeType(for data: Data) -> String {
+        var byte: UInt8 = 0
+        data.copyBytes(to: &byte, count: 1)
+        switch byte {
+        case 0xFF: return "image/jpeg"
+        case 0x89: return "image/png"
+        case 0x47: return "image/gif"
+        case 0x49, 0x4D: return "image/tiff"
+        default:   return "application/octet-stream"
+        }
     }
 
     // MARK: - Step 1: Request presigned upload URL
 
-    private func requestUploadUrl(serviceId: UUID, fileName: String, mimeType: String) async throws -> UploadUrlResponse {
+    private func requestUploadUrl(serviceId: UUID, fileName: String, mimeType: String, fileSize: Int) async throws -> UploadUrlResponse {
         guard let url = URL(string: "\(baseURL)/v1/services/\(serviceId)/attachments/upload-urls") else {
             throw APIError.invalidURL
         }
 
-        let requestBody = [UploadUrlRequest(fileName: fileName, fileType: mimeType)]
+        let requestBody = [UploadUrlRequest(filename: fileName, contentType: mimeType, fileSize: fileSize)]
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -111,6 +137,10 @@ final class AttachmentService: AttachmentServiceProtocol {
         let boundary = "GarageKeep-\(UUID().uuidString)"
         var body = Data()
 
+        // Debug: print all presigned fields so we can verify they match the policy
+        print("[AttachmentUpload] uploadFields keys: \(uploadResponse.uploadFields.keys.sorted())")
+        for (k, v) in uploadResponse.uploadFields { print("[AttachmentUpload]   \(k) = \(v.prefix(60))") }
+
         // All presigned fields must come before the file field
         for (key, value) in uploadResponse.uploadFields {
             body.append("--\(boundary)\r\n")
@@ -132,13 +162,15 @@ final class AttachmentService: AttachmentServiceProtocol {
         // No Authorization header — S3 uses the presigned fields for auth
         req.httpBody = body
 
-        let (_, response) = try await perform(req)
+        let (s3Data, response) = try await perform(req)
 
         guard let http = response as? HTTPURLResponse else {
             throw APIError.networkError(URLError(.badServerResponse))
         }
         // S3 presigned POST returns 204 No Content on success
         guard (200..<300).contains(http.statusCode) else {
+            let body = String(data: s3Data, encoding: .utf8) ?? "<non-utf8>"
+            print("[AttachmentUpload] S3 error \(http.statusCode): \(body)")
             throw APIError.serverError(http.statusCode)
         }
     }
@@ -152,7 +184,6 @@ final class AttachmentService: AttachmentServiceProtocol {
 
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
-        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let token = KeychainHelper.read(for: KeychainHelper.accessTokenKey) {
             req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }

@@ -31,7 +31,7 @@ final class AddServiceViewModelTests: XCTestCase {
         XCTAssertEqual(sut.costText, "")
         XCTAssertEqual(sut.location, "")
         XCTAssertEqual(sut.notes, "")
-        XCTAssertNil(sut.selectedImageData)
+        XCTAssertTrue(sut.pendingAttachments.isEmpty)
     }
 
     func testInitialState_cannotAdvanceFromDetails() {
@@ -301,44 +301,110 @@ final class AddServiceViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isLoading)
     }
 
+    // MARK: - canAddAttachment / maxAttachments
+
+    func testMaxAttachments_isFive() {
+        XCTAssertEqual(AddServiceViewModel.maxAttachments, 5)
+    }
+
+    func testCanAddAttachment_trueWhenEmpty() {
+        XCTAssertTrue(sut.canAddAttachment)
+    }
+
+    func testCanAddAttachment_trueWhenBelowMax() {
+        for i in 1..<AddServiceViewModel.maxAttachments {
+            sut.pendingAttachments.append(PendingAttachment(data: Data("img\(i)".utf8), fileName: "img\(i).jpg"))
+        }
+        XCTAssertTrue(sut.canAddAttachment)
+    }
+
+    func testCanAddAttachment_falseWhenAtMax() {
+        for i in 1...AddServiceViewModel.maxAttachments {
+            sut.pendingAttachments.append(PendingAttachment(data: Data("img\(i)".utf8), fileName: "img\(i).jpg"))
+        }
+        XCTAssertFalse(sut.canAddAttachment)
+    }
+
     // MARK: - Submit: Attachment Upload
 
-    func testSubmit_doesNotCallAttachmentService_whenNoImageSelected() async {
+    func testSubmit_doesNotCallAttachmentService_whenNoPendingAttachments() async {
         sut.serviceTypePick = "Oil & Filter Change"
         _ = await sut.submit()
         XCTAssertEqual(mockAttachmentService.uploadCallCount, 0)
     }
 
-    func testSubmit_callsAttachmentService_whenImageSelected() async {
+    func testSubmit_callsAttachmentService_oncePerPendingAttachment() async {
         sut.serviceTypePick = "Oil & Filter Change"
-        sut.selectedImageData = Data("fake-image".utf8)
+        sut.pendingAttachments = [
+            PendingAttachment(data: Data("img1".utf8), fileName: "img1.jpg"),
+            PendingAttachment(data: Data("img2".utf8), fileName: "img2.jpg"),
+            PendingAttachment(data: Data("img3".utf8), fileName: "img3.jpg")
+        ]
         _ = await sut.submit()
-        XCTAssertEqual(mockAttachmentService.uploadCallCount, 1)
+        XCTAssertEqual(mockAttachmentService.uploadCallCount, 3)
     }
 
     func testSubmit_passesCorrectServiceIdToAttachmentUpload() async {
         let expectedEvent = ServiceEventResponse.stub
         mockServiceEventService.createResult = .success(expectedEvent)
         sut.serviceTypePick = "Oil & Filter Change"
-        sut.selectedImageData = Data("fake-image".utf8)
+        sut.pendingAttachments = [PendingAttachment(data: Data("img".utf8), fileName: "img.jpg")]
         _ = await sut.submit()
         XCTAssertEqual(mockAttachmentService.lastServiceId, expectedEvent.id)
     }
 
-    func testSubmit_stillReturnsEvent_whenAttachmentUploadFails() async {
+    func testSubmit_stillReturnsEvent_whenAllAttachmentUploadsFail() async {
         mockAttachmentService.uploadResult = .failure(APIError.serverError(500))
         sut.serviceTypePick = "Oil & Filter Change"
-        sut.selectedImageData = Data("fake-image".utf8)
+        sut.pendingAttachments = [PendingAttachment(data: Data("img".utf8), fileName: "img.jpg")]
         let result = await sut.submit()
         XCTAssertNotNil(result)
     }
 
-    func testSubmit_doesNotSetErrorMessage_whenAttachmentUploadFails() async {
+    func testSubmit_setsAttachmentFailed_whenAnyUploadFails() async {
         mockAttachmentService.uploadResult = .failure(APIError.serverError(500))
         sut.serviceTypePick = "Oil & Filter Change"
-        sut.selectedImageData = Data("fake-image".utf8)
+        sut.pendingAttachments = [PendingAttachment(data: Data("img".utf8), fileName: "img.jpg")]
         _ = await sut.submit()
-        XCTAssertNil(sut.errorMessage)
+        XCTAssertTrue(sut.attachmentFailed)
+    }
+
+    func testSubmit_setsErrorMessage_whenAllAttachmentsFail() async {
+        mockAttachmentService.uploadResult = .failure(APIError.serverError(500))
+        sut.serviceTypePick = "Oil & Filter Change"
+        sut.pendingAttachments = [PendingAttachment(data: Data("img".utf8), fileName: "img.jpg")]
+        _ = await sut.submit()
+        XCTAssertEqual(sut.errorMessage, "Service saved, but receipts couldn't be uploaded.")
+    }
+
+    func testSubmit_setsIsComplete_afterSuccessfulSubmit() async {
+        sut.serviceTypePick = "Oil & Filter Change"
+        _ = await sut.submit()
+        XCTAssertTrue(sut.isComplete)
+    }
+
+    func testSubmit_doesNotSetAttachmentFailed_whenAllUploadsSucceed() async {
+        sut.serviceTypePick = "Oil & Filter Change"
+        sut.pendingAttachments = [PendingAttachment(data: Data("img".utf8), fileName: "img.jpg")]
+        _ = await sut.submit()
+        XCTAssertFalse(sut.attachmentFailed)
+    }
+
+    func testSubmit_setsPartialErrorMessage_whenSomeAttachmentsFail() async {
+        // 2 succeed, 1 fails
+        mockAttachmentService.resultsQueue = [
+            .success(.stub),
+            .failure(APIError.serverError(500)),
+            .success(.stub)
+        ]
+        sut.serviceTypePick = "Oil & Filter Change"
+        sut.pendingAttachments = [
+            PendingAttachment(data: Data("img1".utf8), fileName: "img1.jpg"),
+            PendingAttachment(data: Data("img2".utf8), fileName: "img2.jpg"),
+            PendingAttachment(data: Data("img3".utf8), fileName: "img3.jpg")
+        ]
+        _ = await sut.submit()
+        XCTAssertEqual(sut.errorMessage, "Service saved, but 1 of 3 receipts failed to upload.")
     }
 
     // MARK: - Service Type Options

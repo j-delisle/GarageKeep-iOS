@@ -1,5 +1,11 @@
 import Foundation
 
+struct PendingAttachment: Identifiable {
+    let id = UUID()
+    let data: Data
+    let fileName: String
+}
+
 @Observable final class AddServiceViewModel {
     enum Step { case details, receipt, review }
 
@@ -17,13 +23,19 @@ import Foundation
     var location: String = ""
     var notes: String = ""
 
-    // Step 2 — Receipt
-    var selectedImageData: Data?
-    var selectedImageName: String = "receipt.jpg"
+    // Step 2 — Receipts
+    static let maxAttachments = 5
+    var pendingAttachments: [PendingAttachment] = []
+
+    var canAddAttachment: Bool {
+        pendingAttachments.count < Self.maxAttachments
+    }
 
     // Submission
     var isLoading = false
     var errorMessage: String?
+    var attachmentFailed = false
+    var isComplete = false
 
     // MARK: - Service Type Options
 
@@ -116,6 +128,7 @@ import Foundation
     func submit() async -> ServiceEventResponse? {
         isLoading = true
         errorMessage = nil
+        attachmentFailed = false
         defer { isLoading = false }
 
         let request = CreateServiceEventRequest(
@@ -132,14 +145,27 @@ import Foundation
                 vehicleId: vehicle.id,
                 request: request
             )
-            if let imageData = selectedImageData {
-                _ = try? await attachmentService.uploadAttachment(
-                    serviceId: event.id,
-                    data: imageData,
-                    fileName: selectedImageName,
-                    mimeType: "image/jpeg"
-                )
+            var failedCount = 0
+            for attachment in pendingAttachments {
+                do {
+                    _ = try await attachmentService.uploadAttachment(
+                        serviceId: event.id,
+                        data: attachment.data,
+                        fileName: attachment.fileName
+                    )
+                } catch {
+                    print("[AttachmentUpload] FAILED \(attachment.fileName): \(error)")
+                    failedCount += 1
+                }
             }
+            if failedCount > 0 {
+                attachmentFailed = true
+                let total = pendingAttachments.count
+                errorMessage = failedCount == total
+                    ? "Service saved, but receipts couldn't be uploaded."
+                    : "Service saved, but \(failedCount) of \(total) receipts failed to upload."
+            }
+            isComplete = true
             return event
         } catch {
             errorMessage = error.localizedDescription

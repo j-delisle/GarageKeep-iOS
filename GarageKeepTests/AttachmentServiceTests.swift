@@ -99,14 +99,12 @@ final class AttachmentServiceTests: XCTestCase {
 
     private func performUpload(
         fileName: String = "receipt.jpg",
-        mimeType: String = "image/jpeg",
         payload: Data = Data("test-image-bytes".utf8)
     ) async throws -> AttachmentResponse {
         try await sut.uploadAttachment(
             serviceId: serviceId,
             data: payload,
-            fileName: fileName,
-            mimeType: mimeType
+            fileName: fileName
         )
     }
 
@@ -141,7 +139,7 @@ final class AttachmentServiceTests: XCTestCase {
         XCTAssertEqual(step1Request?.value(forHTTPHeaderField: "Authorization"), "Bearer test-token")
     }
 
-    func testStep1_bodyIsJsonArrayWithFileNameAndFileType() async throws {
+    func testStep1_bodyIsJsonArrayWithCorrectFields() async throws {
         var step1Request: URLRequest?
         var queue: [(URLRequest) throws -> (HTTPURLResponse, Data)] = [
             { [self] req in step1Request = req; return self.makeUploadUrlResponse() },
@@ -150,16 +148,18 @@ final class AttachmentServiceTests: XCTestCase {
         ]
         MockURLProtocol.requestHandler = { req in try queue.removeFirst()(req) }
 
-        _ = try await performUpload(fileName: "my-receipt.jpg", mimeType: "image/jpeg")
+        let payload = Data(repeating: 0xFF, count: 42) // 42-byte JPEG (starts with 0xFF)
+        _ = try await performUpload(fileName: "my-receipt.jpg", payload: payload)
 
         guard let bodyData = step1Request?.bodyData,
-              let decoded = try? JSONSerialization.jsonObject(with: bodyData) as? [[String: String]] else {
+              let decoded = try? JSONSerialization.jsonObject(with: bodyData) as? [[String: Any]] else {
             XCTFail("Step 1 body is not a JSON array")
             return
         }
         XCTAssertEqual(decoded.count, 1)
-        XCTAssertEqual(decoded[0]["file_name"], "my-receipt.jpg")
-        XCTAssertEqual(decoded[0]["file_type"], "image/jpeg")
+        XCTAssertEqual(decoded[0]["filename"] as? String, "my-receipt.jpg")
+        XCTAssertEqual(decoded[0]["content_type"] as? String, "image/jpeg")
+        XCTAssertEqual(decoded[0]["file_size"] as? Int, 42)
     }
 
     func testStep1_throwsOnServerError() async {
@@ -277,7 +277,10 @@ final class AttachmentServiceTests: XCTestCase {
         ]
         MockURLProtocol.requestHandler = { req in try queue.removeFirst()(req) }
 
-        _ = try await performUpload(mimeType: "image/png")
+        // PNG magic bytes: starts with 0x89
+        var pngPayload = Data([0x89, 0x50, 0x4E, 0x47])
+        pngPayload.append(contentsOf: Data("rest-of-image".utf8))
+        _ = try await performUpload(payload: pngPayload)
 
         let bodyString = step2Request?.bodyData.flatMap { String(data: $0, encoding: .utf8) } ?? ""
         XCTAssertTrue(bodyString.contains("image/png"))
@@ -396,7 +399,7 @@ final class AttachmentServiceTests: XCTestCase {
         ]
         MockURLProtocol.requestHandler = { req in try queue.removeFirst()(req) }
 
-        let result = try await performUpload(fileName: "receipt.jpg", mimeType: "image/jpeg")
+        let result = try await performUpload(fileName: "receipt.jpg")
 
         XCTAssertEqual(result.fileName, "receipt.jpg")
         XCTAssertEqual(result.fileType, "image/jpeg")

@@ -131,9 +131,9 @@ final class AddServiceScreenTests: XCTestCase {
         XCTAssertTrue(app.buttons["Camera"].waitForExistence(timeout: 3))
     }
 
-    func testReceiptStep_showsLibraryButton() {
+    func testReceiptStep_showsGalleryButton() {
         navigateToReceiptStep()
-        XCTAssertTrue(app.buttons["Library"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Choose from Gallery"].waitForExistence(timeout: 3))
     }
 
     func testReceiptStep_backButton_returnsToDetailsStep() {

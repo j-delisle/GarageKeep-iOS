@@ -3,8 +3,9 @@ import Foundation
 // MARK: - Upload URL (Step 1)
 
 struct UploadUrlRequest: Encodable {
-    let fileName: String
-    let fileType: String
+    let filename: String      // backend expects "filename" (no snake_case conversion needed)
+    let contentType: String   // encodes to "content_type"
+    let fileSize: Int         // encodes to "file_size"
 }
 
 struct UploadUrlResponse: Decodable {
