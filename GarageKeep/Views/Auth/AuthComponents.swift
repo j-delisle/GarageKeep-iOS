@@ -16,16 +16,13 @@ struct AppTextField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(label)
-                .font(.caption.weight(.semibold))
+                .font(.sectionHeader)
                 .foregroundStyle(Color.textSecondary)
 
             ZStack {
-                RoundedRectangle(cornerRadius: Radius.button)
-                    .fill(Color.appSurface)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: Radius.button)
-                            .stroke(Color.appBorder, lineWidth: 1)
-                    )
+                // surface-container-highest background — no border stroke per design rules
+                RoundedRectangle(cornerRadius: Radius.input)
+                    .fill(Color.appSurfaceElevated)
 
                 HStack(spacing: Spacing.sm) {
                     Group {
@@ -37,6 +34,7 @@ struct AppTextField: View {
                         }
                     }
                     .textContentType(textContentType)
+                    .font(.bodyMd)
                     .foregroundStyle(Color.textPrimary)
                     .tint(.appPrimary)
                     .accessibilityIdentifier(accessibilityID ?? "")
@@ -69,14 +67,14 @@ struct PrimaryButton: View {
         Button(action: action) {
             ZStack {
                 RoundedRectangle(cornerRadius: Radius.button)
-                    .fill(Color.appPrimary)
+                    .fill(LinearGradient.primaryCTA)
 
                 if isLoading {
                     ProgressView()
                         .tint(.appBackground)
                 } else {
                     Text(title)
-                        .font(.body.weight(.semibold))
+                        .font(.buttonLabel)
                         .foregroundStyle(Color.appBackground)
                 }
             }
@@ -98,11 +96,12 @@ struct SecondaryButton: View {
     var body: some View {
         Button(action: action) {
             ZStack {
+                // Ghost border per design: outline-variant at 20% opacity
                 RoundedRectangle(cornerRadius: Radius.button)
-                    .stroke(Color.appPrimary, lineWidth: 1.5)
+                    .stroke(Color.appBorder.opacity(0.2), lineWidth: 1.5)
 
                 Text(title)
-                    .font(.body.weight(.semibold))
+                    .font(.buttonLabel)
                     .foregroundStyle(Color.appPrimary)
             }
             .frame(maxWidth: .infinity)
@@ -125,22 +124,21 @@ struct SocialButton: View {
             HStack(spacing: Spacing.sm) {
                 if isSystemImage {
                     Image(systemName: iconName)
-                        .font(.body.weight(.medium))
+                        .font(.bodyMd.weight(.medium))
                 } else {
                     Text(iconName)
-                        .font(.body.weight(.bold))
+                        .font(.titleSm.weight(.bold))
                 }
 
                 Text(title)
-                    .font(.subheadline.weight(.medium))
+                    .font(.titleSm)
             }
             .foregroundStyle(Color.textPrimary)
             .frame(maxWidth: .infinity)
             .frame(height: 48)
             .background(
                 RoundedRectangle(cornerRadius: Radius.button)
-                    .stroke(Color.appBorder, lineWidth: 1)
-                    .background(Color.appSurface.clipShape(RoundedRectangle(cornerRadius: Radius.button)))
+                    .fill(Color.appSurfaceElevated)
             )
         }
     }
@@ -152,14 +150,14 @@ struct OrDivider: View {
     var body: some View {
         HStack(spacing: Spacing.md) {
             Rectangle()
-                .fill(Color.appBorder)
+                .fill(Color.appBorder.opacity(0.3))
                 .frame(height: 1)
             Text("Or continue with")
-                .font(.caption)
+                .font(.labelSm)
                 .foregroundStyle(Color.textTertiary)
                 .fixedSize()
             Rectangle()
-                .fill(Color.appBorder)
+                .fill(Color.appBorder.opacity(0.3))
                 .frame(height: 1)
         }
     }
@@ -175,7 +173,7 @@ struct ErrorBanner: View {
             Image(systemName: "exclamationmark.circle.fill")
                 .foregroundStyle(Color.statusDanger)
             Text(message)
-                .font(.caption)
+                .font(.bodyMd)
                 .foregroundStyle(Color.textPrimary)
             Spacer()
         }

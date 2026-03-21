@@ -89,7 +89,7 @@ struct AddServiceDetailsStepView: View {
                             .foregroundStyle(Color.textPrimary)
                             .tint(.appPrimary)
                         Text("MI")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(.sectionHeader)
                             .foregroundStyle(Color.textSecondary)
                     }
                 }
@@ -114,7 +114,7 @@ struct AddServiceDetailsStepView: View {
             } label: {
                 HStack {
                     Text(viewModel.serviceTypePick.isEmpty ? "Select type..." : viewModel.serviceTypePick)
-                        .font(.system(size: 16))
+                        .font(.bodyMd)
                         .foregroundStyle(
                             viewModel.serviceTypePick.isEmpty ? Color.textSecondary : Color.textPrimary
                         )
@@ -128,16 +128,12 @@ struct AddServiceDetailsStepView: View {
 
             if viewModel.serviceTypePick == "Other" {
                 TextField("Describe the service...", text: $viewModel.serviceTypeCustom)
-                    .font(.system(size: 15))
+                    .font(.bodyMd)
                     .foregroundStyle(Color.textPrimary)
                     .tint(.appPrimary)
                     .padding(Spacing.sm)
                     .background(Color.appSurfaceElevated)
-                    .clipShape(RoundedRectangle(cornerRadius: Radius.button))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: Radius.button)
-                            .stroke(Color.appBorder, lineWidth: 1)
-                    )
+                    .clipShape(RoundedRectangle(cornerRadius: Radius.input))
             }
         }
     }
@@ -153,7 +149,7 @@ struct AddServiceDetailsStepView: View {
                 ServiceFormRow(icon: "dollarsign.circle", label: "TOTAL COST") {
                     HStack(spacing: 4) {
                         Text("$")
-                            .font(.system(size: 16))
+                            .font(.bodyMd)
                             .foregroundStyle(Color.textSecondary)
                         TextField("0.00", text: $viewModel.costText)
                             .keyboardType(.decimalPad)
@@ -189,14 +185,14 @@ struct AddServiceDetailsStepView: View {
 
                 if viewModel.notes.isEmpty {
                     Text("Add any details about the service performed, parts used, or future recommendations...")
-                        .font(.system(size: 14))
+                        .font(.bodyMd)
                         .foregroundStyle(Color.textSecondary)
                         .padding(Spacing.md)
                         .allowsHitTesting(false)
                 }
 
                 TextEditor(text: $viewModel.notes)
-                    .font(.system(size: 14))
+                    .font(.bodyMd)
                     .foregroundStyle(Color.textPrimary)
                     .tint(.appPrimary)
                     .scrollContentBackground(.hidden)
@@ -215,7 +211,7 @@ struct FormSectionHeader: View {
 
     var body: some View {
         Text(title)
-            .font(.system(size: 12, weight: .semibold))
+            .font(.sectionHeader)
             .foregroundStyle(Color.textSecondary)
             .tracking(0.5)
             .padding(.horizontal, Spacing.md)
@@ -224,10 +220,11 @@ struct FormSectionHeader: View {
     }
 }
 
+// FormDivider replaced with a surface-level color spacer per design "No-Line" rule.
 struct FormDivider: View {
     var body: some View {
-        Divider()
-            .background(Color.appBorder)
+        Color.appBackground.opacity(0.5)
+            .frame(height: 1)
             .padding(.leading, 48)
     }
 }
@@ -246,7 +243,7 @@ struct ServiceFormRow<Content: View>: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(label)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.labelSm)
                     .foregroundStyle(Color.textSecondary)
                     .tracking(0.3)
                 content()

@@ -26,7 +26,7 @@ struct ServiceEventRowView: View {
 
             if !isLast {
                 Rectangle()
-                    .fill(Color.appBorder)
+                    .fill(Color.appBorder.opacity(0.25))
                     .frame(width: 2)
                     .frame(maxHeight: .infinity)
             }
@@ -40,26 +40,26 @@ struct ServiceEventRowView: View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack(alignment: .top) {
                 Text(event.serviceType)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.titleSm)
                     .foregroundStyle(Color.textPrimary)
                 Spacer()
                 if let cost = displayCost {
                     Text(cost)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.titleSm)
                         .foregroundStyle(Color.appPrimary)
                 }
             }
 
             HStack(spacing: 4) {
                 Text(formattedDate)
-                    .font(.system(size: 12))
+                    .font(.bodyMd)
                     .foregroundStyle(Color.textSecondary)
                 if let location = event.location {
                     Text("•")
-                        .font(.system(size: 12))
+                        .font(.bodyMd)
                         .foregroundStyle(Color.textTertiary)
                     Text(location)
-                        .font(.system(size: 12))
+                        .font(.bodyMd)
                         .foregroundStyle(Color.textSecondary)
                         .lineLimit(1)
                 }
@@ -68,18 +68,18 @@ struct ServiceEventRowView: View {
             if let notes = event.notes, !notes.isEmpty {
                 HStack(alignment: .top, spacing: Spacing.xs) {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 12))
+                        .font(.labelSm)
                         .foregroundStyle(Color.appPrimary)
                         .padding(.top, 1)
                     Text(notes)
-                        .font(.system(size: 12))
+                        .font(.bodyMd)
                         .foregroundStyle(Color.textSecondary)
                         .lineLimit(3)
                 }
                 .padding(Spacing.sm)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color.appSurfaceElevated)
-                .clipShape(RoundedRectangle(cornerRadius: Radius.badge))
+                .clipShape(RoundedRectangle(cornerRadius: Radius.input))
             }
         }
         .padding(.bottom, Spacing.lg)

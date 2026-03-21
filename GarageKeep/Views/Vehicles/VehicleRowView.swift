@@ -29,22 +29,22 @@ struct VehicleCardView: View {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("\(vehicle.make) \(vehicle.model)")
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.titleMd)
                             .foregroundStyle(Color.textPrimary)
                             .lineLimit(1)
                         Text(subtitleText)
-                            .font(.system(size: 13))
+                            .font(.bodyMd)
                             .foregroundStyle(Color.textSecondary)
                             .lineLimit(1)
                     }
                     Spacer()
                     VStack(alignment: .trailing, spacing: 2) {
                         Text("MILEAGE")
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(.labelSm)
                             .foregroundStyle(Color.textSecondary)
                             .tracking(0.5)
                         Text("---")
-                            .font(.system(size: 15, weight: .bold))
+                            .font(.titleSm)
                             .foregroundStyle(Color.textPrimary)
                     }
                 }
@@ -52,7 +52,7 @@ struct VehicleCardView: View {
                 // Row 2: service detail + action button
                 HStack {
                     Label("No service on record", systemImage: "calendar")
-                        .font(.system(size: 13))
+                        .font(.bodyMd)
                         .foregroundStyle(Color.textSecondary)
                         .lineLimit(1)
                     Spacer()
@@ -63,12 +63,6 @@ struct VehicleCardView: View {
             .background(Color.appSurface)
         }
         .clipShape(RoundedRectangle(cornerRadius: Radius.card))
-        .overlay {
-            if vehicleStatus == .alert {
-                RoundedRectangle(cornerRadius: Radius.card)
-                    .stroke(Color.appPrimary, lineWidth: 1.5)
-            }
-        }
         .accessibilityIdentifier("vehicle_card_\(vehicle.id)")
     }
 
@@ -103,19 +97,19 @@ struct VehicleCardView: View {
         switch status {
         case .active:
             Button("Add Service") {}
-                .font(.system(size: 13, weight: .semibold))
+                .font(.sectionHeader)
                 .foregroundStyle(Color.appPrimary)
                 .padding(.horizontal, Spacing.md)
                 .padding(.vertical, 6)
                 .overlay(
                     RoundedRectangle(cornerRadius: Radius.button)
-                        .stroke(Color.appPrimary, lineWidth: 1.5)
+                        .stroke(Color.appBorder.opacity(0.2), lineWidth: 1.5)
                 )
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("btn_add_service")
         case .alert:
             Button("Fix Issue") {}
-                .font(.system(size: 13, weight: .semibold))
+                .font(.sectionHeader)
                 .foregroundStyle(.white)
                 .padding(.horizontal, Spacing.md)
                 .padding(.vertical, 6)
@@ -132,7 +126,7 @@ private struct StatusBadgeView: View {
 
     var body: some View {
         Text(status.label)
-            .font(.system(size: 11, weight: .semibold))
+            .font(.labelSm)
             .foregroundStyle(status.badgeTextColor)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)

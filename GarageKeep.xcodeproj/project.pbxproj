@@ -29,9 +29,32 @@
 		611FB2F32F5CFBA30045A6DC /* GarageKeepUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GarageKeepUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		611FB3662F6EE0900045A6DC /* Exceptions for "Fonts" folder in "GarageKeep" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Manrope-Regular.ttf",
+				"Manrope-SemiBold.ttf",
+				"PlusJakartaSans-Bold.ttf",
+				"PlusJakartaSans-SemiBold.ttf",
+			);
+			target = 611FB2B42F5CC5270045A6DC /* GarageKeep */;
+		};
+		611FB3722F6EE1DC0045A6DC /* Exceptions for "GarageKeep" folder in "GarageKeep" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 611FB2B42F5CC5270045A6DC /* GarageKeep */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		611FB2B72F5CC5270045A6DC /* GarageKeep */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				611FB3722F6EE1DC0045A6DC /* Exceptions for "GarageKeep" folder in "GarageKeep" target */,
+			);
 			path = GarageKeep;
 			sourceTree = "<group>";
 		};
@@ -43,6 +66,14 @@
 		611FB2F42F5CFBA30045A6DC /* GarageKeepUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = GarageKeepUITests;
+			sourceTree = "<group>";
+		};
+		611FB35D2F6EE01A0045A6DC /* Fonts */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				611FB3662F6EE0900045A6DC /* Exceptions for "Fonts" folder in "GarageKeep" target */,
+			);
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +106,7 @@
 		611FB2AC2F5CC5270045A6DC = {
 			isa = PBXGroup;
 			children = (
+				611FB35C2F6EE0050045A6DC /* Resources */,
 				611FB2B72F5CC5270045A6DC /* GarageKeep */,
 				611FB2E72F5CFB790045A6DC /* GarageKeepTests */,
 				611FB2F42F5CFBA30045A6DC /* GarageKeepUITests */,
@@ -90,6 +122,14 @@
 				611FB2F32F5CFBA30045A6DC /* GarageKeepUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		611FB35C2F6EE0050045A6DC /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				611FB35D2F6EE01A0045A6DC /* Fonts */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -397,6 +437,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GarageKeep/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -428,6 +469,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GarageKeep/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

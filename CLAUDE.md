@@ -18,69 +18,43 @@ Communicates with a backend REST API at `http://127.0.0.1:8005` (local dev). All
 
 ## Design System
 
-**Theme:** Dark mode only (Teal/Dark)
+**Full spec:** `design.md` (project root) — always read it before making UI changes.
+**Theme:** Dark mode only — "Precision Atelier" (Technical Luxury aesthetic)
+**Swift tokens:** `Utilities/DesignTokens.swift`
 
-### Colors
+### Quick Reference
 
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `primary` | `#0DF2DF` | CTAs, active states, teal accent, tab selection |
-| `background` | `#0E1117` | App background (near-black charcoal) |
-| `surface` | `#1A1D24` | Cards, list rows, form containers |
-| `surfaceElevated` | `#22262F` | Modals, dropdowns, elevated cards |
-| `border` | `#2A2D38` | Subtle dividers, input borders |
-| `textPrimary` | `#FFFFFF` | Headings, primary labels |
-| `textSecondary` | `#8C8FA3` | Subtitles, metadata, placeholder text |
-| `textTertiary` | `#55596A` | Disabled text, hints |
-| `statusActive` | `#0DF2DF` | "ACTIVE" badge (same as primary) |
-| `statusAlert` | `#F97316` | "ALERT" badge, warning states |
-| `statusDanger` | `#EF4444` | "Fix Issue" button, error states, destructive actions |
-| `statusSuccess` | `#22C55E` | Positive indicators, health 100% |
-| `tabBarBackground` | `#0E1117` | Bottom tab bar background |
+**Colors (key tokens)**
+| Swift token | Hex | Role |
+|-------------|-----|------|
+| `appBackground` | `#131315` | Base floor surface |
+| `appSurface` | `#1b1b1d` | Cards, secondary zones |
+| `appSurfaceContainerHigh` | `#272729` | Elevated containers |
+| `appSurfaceElevated` | `#353437` | Active modals, prioritized cards |
+| `appPrimary` | `#59d9d9` | Teal accent — use sparingly |
+| `appPrimaryContainer` | `#00a8a8` | Gradient endpoint for CTAs |
+| `tertiary` | `#ffb691` | Service overdue / warning |
+| `appBorder` | `#4a4a4f` | Ghost border only at low opacity |
 
-> Note: Primary teal `#0DF2DF` confirmed from Figma. Teal background tints use `primary` at reduced opacity (e.g. 10–20%) rather than separate colors. Other hex values are approximate — verify from Figma Inspect as needed.
+**Typography** — Plus Jakarta Sans (display/headline) + Manrope (body/label). Fonts must be bundled in Xcode target.
+| Swift token | Font | Size | Use |
+|-------------|------|------|-----|
+| `Font.displayLg` | Plus Jakarta Sans Bold | 56pt | Hero numbers (odometer) |
+| `Font.headlineMd` | Plus Jakarta Sans SemiBold | 28pt | Page titles |
+| `Font.titleMd` | Manrope SemiBold | 18pt | Card headers |
+| `Font.bodyMd` | Manrope Regular | 14pt | General content |
+| `Font.labelSm` | Manrope Regular | 11pt | Metadata, specs |
 
-### Typography
+**Radius** — `Radius.card` = 24pt, `Radius.button` = 24pt, `Radius.badge` = 9999 (full pill), `Radius.input` = 12pt
 
-- **Font family:** SF Pro (iOS system font) — no custom typeface
-- **App name / Hero headings:** SF Pro Display, Bold (32–34pt)
-- **Screen titles:** SF Pro Display, Semibold (22–24pt)
-- **Section headers:** SF Pro Text, Semibold (17pt)
-- **Body / list rows:** SF Pro Text, Regular (15–16pt)
-- **Captions / metadata:** SF Pro Text, Regular (12–13pt)
-- **Badges / labels:** SF Pro Text, Semibold (11–12pt), uppercase
+**Spacing** — `Spacing.outer` = 24pt (required screen margins), `Spacing.md` = 16pt (card padding)
 
-### Corner Radius
-
-| Element | Radius |
-|---------|--------|
-| Cards | 12pt |
-| Buttons (pill CTA) | 10pt |
-| Input fields | 10pt |
-| Badges / status pills | 6pt |
-| Vehicle image thumbnails | 10pt |
-
-### Spacing
-
-- Standard horizontal padding: 16pt
-- Card internal padding: 12–16pt
-- Section vertical spacing: 20pt
-- List row height: ~72pt (with thumbnail), ~56pt (text only)
-
-### Button Styles
-
-- **Primary:** Filled, `primary` background, `background`-colored text, full-width pill, 52pt height
-- **Secondary:** Outlined, `primary` border + text, transparent background, same shape
-- **Destructive:** Filled `statusDanger` background, white text
-- **Small action (e.g. "Details", "Remind"):** Outlined pill, small — 32pt height
-
-### Component Patterns
-
-- Vehicle cards: horizontal layout, left-side thumbnail image (rounded), right side text stack, status badge top-left
-- Status badges: `ACTIVE` (teal), `ALERT` (orange) — uppercase, pill shape, 11pt semibold
-- Form fields: dark surface background, subtle border, 16pt internal padding, `textSecondary` placeholder
-- Section labels: `textSecondary`, 12pt uppercase semibold, 20pt above section
-- Bottom sheet / modals: `surfaceElevated` background, 20pt top corner radius
+### Critical Design Rules (from design.md)
+- **No 1px solid borders** — define boundaries via surface color shifts, not lines
+- **`appBorder` ghost border fallback** — only use at `.opacity(0.15)` when a container truly needs extra definition
+- **Primary CTAs** — use `LinearGradient.primaryCTA` (primary → primaryContainer at 135°), not flat fill
+- **Never pure black** — use `appBackground` (#131315), not #000000
+- **`appPrimary` is a laser, not a paint bucket** — accent only, never large fills
 
 ### Navigation (Bottom Tab Bar)
 
@@ -268,8 +242,9 @@ struct TokenResponse: Codable {
 
 ## Open Items
 
-- [x] Design system / color scheme — added from Figma (hex values are approximate, verify from Figma Inspect)
-- [ ] Create `DesignTokens.swift` (or `Color+App.swift`) with Swift `Color` extensions matching the design system
+- [x] Design system — full spec in `design.md`, tokens in `DesignTokens.swift`
+- [ ] Bundle custom fonts — **Plus Jakarta Sans** and **Manrope** must be added to the Xcode target (`Info.plist` `UIAppFonts` entries + font files in bundle) before `Font.displayLg` / `Font.headlineMd` / `Font.titleMd` / `Font.bodyMd` / `Font.labelSm` render correctly
+- [ ] Update existing views to use new design tokens (new colors, `Radius.card` = 24pt, `Radius.button` = 24pt, gradient CTAs, no solid borders)
 - [ ] Offline/caching strategy (not yet decided)
 - [ ] Deployment target set to iOS 26.2 in project file — should be corrected to iOS 18.0
 - [ ] Auth flow UX — designed in Figma (Login, Sign Up, Welcome screens)

@@ -30,7 +30,7 @@ struct AddServiceReviewStepView: View {
     private var serviceDetailsCard: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("SERVICE DETAILS")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.sectionHeader)
                 .foregroundStyle(Color.textSecondary)
                 .tracking(0.5)
 
@@ -55,14 +55,7 @@ struct AddServiceReviewStepView: View {
                     reviewRow(label: "Notes", value: notes)
                 }
             }
-            .background(
-                RoundedRectangle(cornerRadius: Radius.card)
-                    .fill(Color.appSurface)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: Radius.card)
-                            .stroke(Color.appBorder, lineWidth: 1)
-                    )
-            )
+            .background(Color.appSurface)
             .clipShape(RoundedRectangle(cornerRadius: Radius.card))
         }
     }
@@ -77,11 +70,11 @@ struct AddServiceReviewStepView: View {
     private func reviewRow(label: String, value: String) -> some View {
         HStack(alignment: .top) {
             Text(label)
-                .font(.subheadline)
+                .font(.bodyMd)
                 .foregroundStyle(Color.textSecondary)
             Spacer()
             Text(value)
-                .font(.subheadline.weight(.medium))
+                .font(.bodyMd.weight(.medium))
                 .foregroundStyle(Color.textPrimary)
                 .multilineTextAlignment(.trailing)
                 .frame(maxWidth: 220, alignment: .trailing)
@@ -91,7 +84,7 @@ struct AddServiceReviewStepView: View {
     }
 
     private var reviewDivider: some View {
-        Divider().background(Color.appBorder)
+        Color.appBackground.opacity(0.5).frame(height: 1)
     }
 
     // MARK: - Receipt Preview
@@ -99,7 +92,7 @@ struct AddServiceReviewStepView: View {
     private var receiptPreview: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("RECEIPT")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.sectionHeader)
                 .foregroundStyle(Color.textSecondary)
                 .tracking(0.5)
 
@@ -115,11 +108,11 @@ struct AddServiceReviewStepView: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(viewModel.selectedImageName)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.bodyMd.weight(.medium))
                         .foregroundStyle(Color.textPrimary)
                         .lineLimit(1)
                     Text("Image · Will be uploaded")
-                        .font(.system(size: 12))
+                        .font(.labelSm)
                         .foregroundStyle(Color.textSecondary)
                 }
 
@@ -131,10 +124,6 @@ struct AddServiceReviewStepView: View {
             .padding(Spacing.md)
             .background(Color.appSurface)
             .clipShape(RoundedRectangle(cornerRadius: Radius.card))
-            .overlay(
-                RoundedRectangle(cornerRadius: Radius.card)
-                    .stroke(Color.appBorder, lineWidth: 1)
-            )
         }
     }
 }

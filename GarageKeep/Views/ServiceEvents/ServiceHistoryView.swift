@@ -119,7 +119,7 @@ struct ServiceHistoryView: View {
                 ProgressView().tint(.appPrimary)
             } else {
                 Text("Load More")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.bodyMd.weight(.semibold))
                     .foregroundStyle(Color.appPrimary)
             }
         }
@@ -135,10 +135,10 @@ struct ServiceHistoryView: View {
                 .font(.system(size: 40))
                 .foregroundStyle(Color.appPrimary.opacity(0.5))
             Text("No service records yet")
-                .font(.system(size: 15, weight: .semibold))
+                .font(.titleSm)
                 .foregroundStyle(Color.textPrimary)
             Text("Add your first service event to start tracking history.")
-                .font(.system(size: 13))
+                .font(.bodyMd)
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, Spacing.xl)
@@ -150,16 +150,16 @@ struct ServiceHistoryView: View {
     private func errorView(message: String) -> some View {
         VStack(spacing: Spacing.md) {
             Text("Failed to load service history")
-                .font(.body.weight(.semibold))
+                .font(.titleSm)
                 .foregroundStyle(Color.textPrimary)
             Text(message)
-                .font(.caption)
+                .font(.bodyMd)
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)
             Button("Retry") {
                 Task { await viewModel.loadInitial() }
             }
-            .font(.system(size: 14, weight: .semibold))
+            .font(.bodyMd.weight(.semibold))
             .foregroundStyle(Color.appPrimary)
         }
         .padding(Spacing.md)
@@ -187,11 +187,11 @@ private struct StatCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(label.uppercased())
-                .font(.system(size: 11, weight: .semibold))
+                .font(.labelSm)
                 .foregroundStyle(Color.textSecondary)
                 .tracking(0.5)
             Text(value)
-                .font(.system(size: 22, weight: .bold))
+                .font(.displaySm)
                 .foregroundStyle(Color.textPrimary)
                 .minimumScaleFactor(0.7)
                 .lineLimit(1)
@@ -224,13 +224,13 @@ private struct VehicleSummaryCardView: View {
             VStack(alignment: .leading, spacing: 3) {
                 let yearStr = vehicle.year.map { "\($0) " } ?? ""
                 Text("\(yearStr)\(vehicle.make) \(vehicle.model)")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.titleSm)
                     .foregroundStyle(Color.textPrimary)
                 Text("VIN: \(maskedVin)")
-                    .font(.system(size: 12))
+                    .font(.bodyMd)
                     .foregroundStyle(Color.textSecondary)
                 Text(mileage)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.sectionHeader)
                     .foregroundStyle(Color.appPrimary)
             }
 
@@ -253,7 +253,7 @@ private struct SectionHeaderView: View {
 
     var body: some View {
         Text(title)
-            .font(.system(size: 12, weight: .semibold))
+            .font(.sectionHeader)
             .foregroundStyle(Color.textSecondary)
             .tracking(0.5)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -317,9 +317,9 @@ private struct AddServiceFAB: View {
                 .font(.system(size: 22, weight: .semibold))
                 .foregroundStyle(Color.appBackground)
                 .frame(width: 56, height: 56)
-                .background(Color.appPrimary)
+                .background(LinearGradient.primaryCTA)
                 .clipShape(Circle())
-                .shadow(color: Color.appPrimary.opacity(0.4), radius: 12, x: 0, y: 4)
+                .shadow(color: Color.appPrimary.opacity(0.3), radius: 24, x: 0, y: 6)
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("btn_add_service")

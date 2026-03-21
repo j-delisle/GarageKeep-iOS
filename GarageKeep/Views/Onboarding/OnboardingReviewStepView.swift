@@ -37,31 +37,24 @@ struct OnboardingReviewStepView: View {
     private var summaryCard: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text("Vehicle Details")
-                .font(.caption.weight(.semibold))
+                .font(.sectionHeader)
                 .foregroundStyle(Color.textSecondary)
                 .textCase(.uppercase)
 
             VStack(spacing: 0) {
                 detailRow(label: "Make", value: viewModel.resolvedMake)
-                Divider().background(Color.appBorder)
+                Color.appBackground.opacity(0.5).frame(height: 1).padding(.leading, Spacing.md)
                 detailRow(label: "Model", value: viewModel.resolvedModel)
                 if let year = viewModel.resolvedYear {
-                    Divider().background(Color.appBorder)
+                    Color.appBackground.opacity(0.5).frame(height: 1).padding(.leading, Spacing.md)
                     detailRow(label: "Year", value: String(year))
                 }
                 if let vin = viewModel.resolvedVin {
-                    Divider().background(Color.appBorder)
+                    Color.appBackground.opacity(0.5).frame(height: 1).padding(.leading, Spacing.md)
                     detailRow(label: "VIN", value: vin)
                 }
             }
-            .background(
-                RoundedRectangle(cornerRadius: Radius.card)
-                    .fill(Color.appSurface)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: Radius.card)
-                            .stroke(Color.appBorder, lineWidth: 1)
-                    )
-            )
+            .background(Color.appSurface)
             .clipShape(RoundedRectangle(cornerRadius: Radius.card))
         }
     }
@@ -69,11 +62,11 @@ struct OnboardingReviewStepView: View {
     private func detailRow(label: String, value: String) -> some View {
         HStack {
             Text(label)
-                .font(.subheadline)
+                .font(.bodyMd)
                 .foregroundStyle(Color.textSecondary)
             Spacer()
             Text(value)
-                .font(.subheadline.weight(.medium))
+                .font(.bodyMd.weight(.medium))
                 .foregroundStyle(Color.textPrimary)
         }
         .padding(.horizontal, Spacing.md)

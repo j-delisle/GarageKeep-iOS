@@ -80,9 +80,9 @@ private struct AddVehicleFAB: View {
                 .font(.system(size: 22, weight: .semibold))
                 .foregroundStyle(Color.appBackground)
                 .frame(width: 56, height: 56)
-                .background(Color.appPrimary)
+                .background(LinearGradient.primaryCTA)
                 .clipShape(Circle())
-                .shadow(color: Color.appPrimary.opacity(0.4), radius: 12, x: 0, y: 4)
+                .shadow(color: Color.appPrimary.opacity(0.3), radius: 24, x: 0, y: 6)
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("btn_add_vehicle")

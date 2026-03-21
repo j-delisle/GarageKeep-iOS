@@ -115,7 +115,6 @@ struct AddServiceContainerView: View {
         .padding(.top, Spacing.md)
         .padding(.bottom, Spacing.lg)
         .background(Color.appBackground)
-        .overlay(Rectangle().fill(Color.appBorder).frame(height: 1), alignment: .top)
     }
 
     private var backButton: some View {
@@ -126,14 +125,14 @@ struct AddServiceContainerView: View {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 13, weight: .semibold))
                 Text("Back")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.buttonLabel)
             }
             .foregroundStyle(Color.appPrimary)
             .frame(maxWidth: .infinity)
             .frame(height: 52)
             .background(
                 RoundedRectangle(cornerRadius: Radius.button)
-                    .stroke(Color.appPrimary, lineWidth: 1.5)
+                    .stroke(Color.appBorder.opacity(0.2), lineWidth: 1.5)
             )
         }
         .buttonStyle(.plain)
@@ -152,12 +151,12 @@ struct AddServiceContainerView: View {
             } label: {
                 ZStack {
                     RoundedRectangle(cornerRadius: Radius.button)
-                        .fill(Color.appPrimary)
+                        .fill(LinearGradient.primaryCTA)
                     if viewModel.isLoading {
                         ProgressView().tint(.appBackground)
                     } else {
                         Text("Confirm & Save")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.buttonLabel)
                             .foregroundStyle(Color.appBackground)
                     }
                 }
@@ -173,13 +172,10 @@ struct AddServiceContainerView: View {
             } label: {
                 ZStack {
                     RoundedRectangle(cornerRadius: Radius.button)
-                        .fill(
-                            viewModel.currentStep == .details && !viewModel.canAdvanceFromDetails
-                                ? Color.appPrimary.opacity(0.3)
-                                : Color.appPrimary
-                        )
+                        .fill(LinearGradient.primaryCTA)
+                        .opacity(viewModel.currentStep == .details && !viewModel.canAdvanceFromDetails ? 0.3 : 1.0)
                     Text("Next")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.buttonLabel)
                         .foregroundStyle(Color.appBackground)
                 }
                 .frame(maxWidth: .infinity)
