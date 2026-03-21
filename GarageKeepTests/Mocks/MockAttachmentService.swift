@@ -21,6 +21,17 @@ final class MockAttachmentService: AttachmentServiceProtocol {
         let result = resultsQueue.isEmpty ? uploadResult : resultsQueue.removeFirst()
         return try result.get()
     }
+
+    func uploadAttachments(serviceId: UUID, attachments: [PendingAttachment]) async throws -> [AttachmentUploadResult] {
+        return attachments.map { attachment in
+            uploadCallCount += 1
+            lastServiceId = serviceId
+            lastFileName = attachment.fileName
+            lastData = attachment.data
+            let result = resultsQueue.isEmpty ? uploadResult : resultsQueue.removeFirst()
+            return AttachmentUploadResult(fileName: attachment.fileName, result: result)
+        }
+    }
 }
 
 extension AttachmentResponse {

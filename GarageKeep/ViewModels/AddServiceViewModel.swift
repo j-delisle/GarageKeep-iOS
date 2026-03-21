@@ -145,25 +145,19 @@ struct PendingAttachment: Identifiable {
                 vehicleId: vehicle.id,
                 request: request
             )
-            var failedCount = 0
-            for attachment in pendingAttachments {
-                do {
-                    _ = try await attachmentService.uploadAttachment(
-                        serviceId: event.id,
-                        data: attachment.data,
-                        fileName: attachment.fileName
-                    )
-                } catch {
-                    print("[AttachmentUpload] FAILED \(attachment.fileName): \(error)")
-                    failedCount += 1
+            if !pendingAttachments.isEmpty {
+                let uploadResults = try await attachmentService.uploadAttachments(
+                    serviceId: event.id,
+                    attachments: pendingAttachments
+                )
+                let failedCount = uploadResults.filter { if case .failure = $0.result { return true }; return false }.count
+                if failedCount > 0 {
+                    attachmentFailed = true
+                    let total = pendingAttachments.count
+                    errorMessage = failedCount == total
+                        ? "Service saved, but receipts couldn't be uploaded."
+                        : "Service saved, but \(failedCount) of \(total) receipts failed to upload."
                 }
-            }
-            if failedCount > 0 {
-                attachmentFailed = true
-                let total = pendingAttachments.count
-                errorMessage = failedCount == total
-                    ? "Service saved, but receipts couldn't be uploaded."
-                    : "Service saved, but \(failedCount) of \(total) receipts failed to upload."
             }
             isComplete = true
             return event

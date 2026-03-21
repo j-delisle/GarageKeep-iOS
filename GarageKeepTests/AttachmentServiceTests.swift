@@ -282,7 +282,7 @@ final class AttachmentServiceTests: XCTestCase {
         pngPayload.append(contentsOf: Data("rest-of-image".utf8))
         _ = try await performUpload(payload: pngPayload)
 
-        let bodyString = step2Request?.bodyData.flatMap { String(data: $0, encoding: .utf8) } ?? ""
+        let bodyString = step2Request?.bodyData.flatMap { String(data: $0, encoding: .isoLatin1) } ?? ""
         XCTAssertTrue(bodyString.contains("image/png"))
     }
 

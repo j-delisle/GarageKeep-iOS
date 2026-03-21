@@ -2,6 +2,12 @@ import Foundation
 
 protocol AttachmentServiceProtocol {
     func uploadAttachment(serviceId: UUID, data: Data, fileName: String) async throws -> AttachmentResponse
+    func uploadAttachments(serviceId: UUID, attachments: [PendingAttachment]) async throws -> [AttachmentUploadResult]
+}
+
+struct AttachmentUploadResult {
+    let fileName: String
+    let result: Result<AttachmentResponse, Error>
 }
 
 final class AttachmentService: AttachmentServiceProtocol {
@@ -73,6 +79,36 @@ final class AttachmentService: AttachmentServiceProtocol {
         return result
     }
 
+    func uploadAttachments(serviceId: UUID, attachments: [PendingAttachment]) async throws -> [AttachmentUploadResult] {
+        guard !attachments.isEmpty else { return [] }
+
+        // Step 1: Request all presigned URLs in a single call
+        let mimeTypes = attachments.map { Self.mimeType(for: $0.data) }
+        let requests = zip(attachments, mimeTypes).map { attachment, mime in
+            UploadUrlRequest(filename: attachment.fileName, contentType: mime, fileSize: attachment.data.count)
+        }
+        let uploadUrls = try await requestUploadUrls(serviceId: serviceId, requests: requests)
+        print("[AttachmentUpload] batch step1 OK — got \(uploadUrls.count) upload URLs")
+
+        // Steps 2 & 3: Upload to S3 then confirm, one per attachment
+        var results: [AttachmentUploadResult] = []
+        for (index, attachment) in attachments.enumerated() {
+            let mime = mimeTypes[index]
+            let uploadUrl = uploadUrls[index]
+            do {
+                try await uploadToS3(uploadResponse: uploadUrl, data: attachment.data, mimeType: mime)
+                print("[AttachmentUpload] batch step2 OK — S3 upload complete for \(attachment.fileName)")
+                let confirmed = try await confirmUpload(attachmentId: uploadUrl.attachmentId)
+                print("[AttachmentUpload] batch step3 OK — confirmed id=\(confirmed.id)")
+                results.append(AttachmentUploadResult(fileName: attachment.fileName, result: .success(confirmed)))
+            } catch {
+                print("[AttachmentUpload] FAILED \(attachment.fileName): \(error)")
+                results.append(AttachmentUploadResult(fileName: attachment.fileName, result: .failure(error)))
+            }
+        }
+        return results
+    }
+
     // MARK: - MIME type detection
 
     private static func mimeType(for data: Data) -> String {
@@ -87,7 +123,38 @@ final class AttachmentService: AttachmentServiceProtocol {
         }
     }
 
-    // MARK: - Step 1: Request presigned upload URL
+    // MARK: - Step 1: Request presigned upload URL(s)
+
+    private func requestUploadUrls(serviceId: UUID, requests: [UploadUrlRequest]) async throws -> [UploadUrlResponse] {
+        guard let url = URL(string: "\(baseURL)/v1/services/\(serviceId)/attachments/upload-urls") else {
+            throw APIError.invalidURL
+        }
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token = KeychainHelper.read(for: KeychainHelper.accessTokenKey) {
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        req.httpBody = try encoder.encode(requests)
+
+        let (responseData, response) = try await perform(req)
+
+        guard let http = response as? HTTPURLResponse else {
+            throw APIError.networkError(URLError(.badServerResponse))
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            throw APIError.serverError(http.statusCode)
+        }
+
+        do {
+            return try decoder.decode([UploadUrlResponse].self, from: responseData)
+        } catch let error as APIError {
+            throw error
+        } catch {
+            throw APIError.decodingError(error)
+        }
+    }
 
     private func requestUploadUrl(serviceId: UUID, fileName: String, mimeType: String, fileSize: Int) async throws -> UploadUrlResponse {
         guard let url = URL(string: "\(baseURL)/v1/services/\(serviceId)/attachments/upload-urls") else {
