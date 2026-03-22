@@ -78,10 +78,19 @@ struct ServiceHistoryView: View {
 
                     LazyVStack(spacing: 0) {
                         ForEach(Array(viewModel.sortedEvents.enumerated()), id: \.element.id) { index, event in
-                            ServiceEventRowView(
+                            NavigationLink(destination: ServiceDetailView(
                                 event: event,
-                                isLast: index == viewModel.sortedEvents.count - 1
-                            )
+                                vehicle: viewModel.vehicle,
+                                previousMileage: previousMileageFor(event),
+                                onDeleted: { viewModel.removeEvent(event) },
+                                onUpdated: { updated in viewModel.replaceEvent(event, with: updated) }
+                            )) {
+                                ServiceEventRowView(
+                                    event: event,
+                                    isLast: index == viewModel.sortedEvents.count - 1
+                                )
+                            }
+                            .buttonStyle(.plain)
                             .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("service_row_\(index)")
                             .swipeActions(edge: .trailing) {
@@ -109,6 +118,13 @@ struct ServiceHistoryView: View {
                 //     .padding(.bottom, Spacing.xl)
             }
         }
+    }
+
+    private func previousMileageFor(_ event: ServiceEventResponse) -> Int? {
+        let sorted = viewModel.sortedEvents
+        guard let index = sorted.firstIndex(where: { $0.id == event.id }),
+              index + 1 < sorted.count else { return nil }
+        return sorted[(index + 1)...].first(where: { $0.mileage != nil })?.mileage
     }
 
     private var loadMoreButton: some View {

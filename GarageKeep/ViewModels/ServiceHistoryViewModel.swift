@@ -85,6 +85,18 @@ import Foundation
         currentOffset += 1
     }
 
+    func removeEvent(_ event: ServiceEventResponse) {
+        events.removeAll { $0.id == event.id }
+        totalCount -= 1
+        currentOffset = max(0, currentOffset - 1)
+    }
+
+    func replaceEvent(_ old: ServiceEventResponse, with new: ServiceEventResponse) {
+        if let index = events.firstIndex(where: { $0.id == old.id }) {
+            events[index] = new
+        }
+    }
+
     func loadMockEvents() {
         events = ServiceEventResponse.stubs
         totalCount = ServiceEventResponse.stubs.count

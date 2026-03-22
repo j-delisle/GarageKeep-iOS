@@ -3,6 +3,7 @@ import Foundation
 protocol ServiceEventServiceProtocol {
     func fetchServiceEvents(vehicleId: UUID, limit: Int, offset: Int) async throws -> ServiceEventListResponse
     func createServiceEvent(vehicleId: UUID, request: CreateServiceEventRequest) async throws -> ServiceEventResponse
+    func updateServiceEvent(serviceId: UUID, request: UpdateServiceEventRequest) async throws -> ServiceEventResponse
     func deleteServiceEvent(serviceId: UUID) async throws
 }
 
@@ -19,6 +20,10 @@ final class ServiceEventService: ServiceEventServiceProtocol {
 
     func createServiceEvent(vehicleId: UUID, request: CreateServiceEventRequest) async throws -> ServiceEventResponse {
         try await apiClient.request("/v1/vehicles/\(vehicleId)/services", method: "POST", body: request)
+    }
+
+    func updateServiceEvent(serviceId: UUID, request: UpdateServiceEventRequest) async throws -> ServiceEventResponse {
+        try await apiClient.request("/v1/services/\(serviceId)", method: "PUT", body: request)
     }
 
     func deleteServiceEvent(serviceId: UUID) async throws {

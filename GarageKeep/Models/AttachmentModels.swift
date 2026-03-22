@@ -16,6 +16,19 @@ struct UploadUrlResponse: Decodable {
     let expiresIn: Int
 }
 
+// MARK: - Attachment List Response
+
+struct AttachmentListResponse: Decodable {
+    let attachments: [AttachmentResponse]
+    let total: Int
+}
+
+// MARK: - Download URL (for fetching signed S3 URLs)
+
+struct DownloadUrlResponse: Decodable {
+    let downloadUrl: String
+}
+
 // MARK: - Attachment
 
 struct AttachmentResponse: Codable, Identifiable {

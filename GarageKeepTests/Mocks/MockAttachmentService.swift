@@ -32,6 +32,26 @@ final class MockAttachmentService: AttachmentServiceProtocol {
             return AttachmentUploadResult(fileName: attachment.fileName, result: result)
         }
     }
+
+    var listResult: Result<[AttachmentResponse], Error> = .success([.stub])
+    var downloadUrlResult: Result<String, Error> = .success("https://example.com/signed-url.jpg")
+
+    private(set) var listCallCount = 0
+    private(set) var lastListServiceId: UUID?
+    private(set) var downloadUrlCallCount = 0
+    private(set) var lastDownloadAttachmentId: UUID?
+
+    func listAttachments(serviceId: UUID) async throws -> [AttachmentResponse] {
+        listCallCount += 1
+        lastListServiceId = serviceId
+        return try listResult.get()
+    }
+
+    func getDownloadUrl(attachmentId: UUID) async throws -> String {
+        downloadUrlCallCount += 1
+        lastDownloadAttachmentId = attachmentId
+        return try downloadUrlResult.get()
+    }
 }
 
 extension AttachmentResponse {

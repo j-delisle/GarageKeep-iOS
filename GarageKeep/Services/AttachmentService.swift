@@ -3,6 +3,8 @@ import Foundation
 protocol AttachmentServiceProtocol {
     func uploadAttachment(serviceId: UUID, data: Data, fileName: String) async throws -> AttachmentResponse
     func uploadAttachments(serviceId: UUID, attachments: [PendingAttachment]) async throws -> [AttachmentUploadResult]
+    func listAttachments(serviceId: UUID) async throws -> [AttachmentResponse]
+    func getDownloadUrl(attachmentId: UUID) async throws -> String
 }
 
 struct AttachmentUploadResult {
@@ -107,6 +109,52 @@ final class AttachmentService: AttachmentServiceProtocol {
             }
         }
         return results
+    }
+
+    func listAttachments(serviceId: UUID) async throws -> [AttachmentResponse] {
+        guard let url = URL(string: "\(baseURL)/v1/services/\(serviceId)/attachments") else {
+            throw APIError.invalidURL
+        }
+        var req = URLRequest(url: url)
+        req.httpMethod = "GET"
+        if let token = KeychainHelper.read(for: KeychainHelper.accessTokenKey) {
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        let (responseData, response) = try await perform(req)
+        guard let http = response as? HTTPURLResponse else {
+            throw APIError.networkError(URLError(.badServerResponse))
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            throw APIError.serverError(http.statusCode)
+        }
+        do {
+            return try decoder.decode(AttachmentListResponse.self, from: responseData).attachments
+        } catch {
+            throw APIError.decodingError(error)
+        }
+    }
+
+    func getDownloadUrl(attachmentId: UUID) async throws -> String {
+        guard let url = URL(string: "\(baseURL)/v1/attachments/\(attachmentId)/download") else {
+            throw APIError.invalidURL
+        }
+        var req = URLRequest(url: url)
+        req.httpMethod = "GET"
+        if let token = KeychainHelper.read(for: KeychainHelper.accessTokenKey) {
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        let (responseData, response) = try await perform(req)
+        guard let http = response as? HTTPURLResponse else {
+            throw APIError.networkError(URLError(.badServerResponse))
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            throw APIError.serverError(http.statusCode)
+        }
+        do {
+            return try decoder.decode(DownloadUrlResponse.self, from: responseData).downloadUrl
+        } catch {
+            throw APIError.decodingError(error)
+        }
     }
 
     // MARK: - MIME type detection

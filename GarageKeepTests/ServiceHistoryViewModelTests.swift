@@ -277,6 +277,62 @@ final class ServiceHistoryViewModelTests: XCTestCase {
         XCTAssertNotNil(sut.errorMessage)
     }
 
+    // MARK: - removeEvent
+
+    func testRemoveEvent_removesFromList() async {
+        let event = ServiceEventResponse.stub
+        mockService.fetchResult = .success(ServiceEventListResponse(services: [event], total: 1))
+        await sut.loadInitial()
+
+        sut.removeEvent(event)
+        XCTAssertFalse(sut.events.contains(where: { $0.id == event.id }))
+    }
+
+    func testRemoveEvent_decrementsCount() async {
+        let event = ServiceEventResponse.stub
+        mockService.fetchResult = .success(ServiceEventListResponse(services: [event], total: 1))
+        await sut.loadInitial()
+
+        sut.removeEvent(event)
+        XCTAssertFalse(sut.hasMorePages)
+    }
+
+    func testRemoveEvent_isNoOp_forUnknownEvent() {
+        let unknown = ServiceEventResponse.stub
+        sut.removeEvent(unknown)
+        XCTAssertTrue(sut.events.isEmpty)
+    }
+
+    // MARK: - replaceEvent
+
+    func testReplaceEvent_updatesEventInPlace() async {
+        let original = makeEvent(date: "2024-01-01")
+        mockService.fetchResult = .success(ServiceEventListResponse(services: [original], total: 1))
+        await sut.loadInitial()
+
+        let updated = ServiceEventResponse(
+            id: original.id, vehicleId: original.vehicleId,
+            serviceType: "Tire Rotation", serviceDate: "2024-01-01",
+            mileage: 15000, cost: "75.00", location: nil, notes: nil,
+            createdAt: original.createdAt, updatedAt: Date()
+        )
+        sut.replaceEvent(original, with: updated)
+
+        XCTAssertEqual(sut.events.first?.serviceType, "Tire Rotation")
+        XCTAssertEqual(sut.events.count, 1)
+    }
+
+    func testReplaceEvent_isNoOp_forUnknownEvent() async {
+        let event = makeEvent(date: "2024-01-01")
+        mockService.fetchResult = .success(ServiceEventListResponse(services: [event], total: 1))
+        await sut.loadInitial()
+
+        let unrelated = ServiceEventResponse.stub
+        sut.replaceEvent(unrelated, with: unrelated)
+
+        XCTAssertEqual(sut.events.first?.id, event.id)
+    }
+
     // MARK: - Helpers
 
     private func makeEvent(date: String = "2024-01-01", cost: String? = "50.00") -> ServiceEventResponse {
