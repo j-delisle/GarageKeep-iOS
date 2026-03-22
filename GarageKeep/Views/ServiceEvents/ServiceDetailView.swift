@@ -48,12 +48,12 @@ struct ServiceDetailView: View {
         .toolbarBackground(Color.appBackground, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .task { await viewModel.loadAttachments() }
-        .confirmationDialog(
-            "Delete this service record?",
+        .deleteConfirmationDialog(
             isPresented: $showDeleteConfirm,
-            titleVisibility: .visible
-        ) {
-            Button("Delete", role: .destructive) {
+            title: "Delete Service Record?",
+            message: "This will permanently remove this service record and all its attachments. This cannot be undone.",
+            isLoading: viewModel.isDeleting,
+            onDelete: {
                 Task {
                     await viewModel.delete {
                         onDeleted()
@@ -61,7 +61,7 @@ struct ServiceDetailView: View {
                     }
                 }
             }
-        }
+        )
         .sheet(isPresented: $showEditSheet) {
             EditServiceView(event: viewModel.event) { updated in
                 viewModel.event = updated
@@ -212,17 +212,11 @@ struct ServiceDetailView: View {
             .buttonStyle(.plain)
 
             Button { showDeleteConfirm = true } label: {
-                Group {
-                    if viewModel.isDeleting {
-                        ProgressView().tint(Color.tertiary)
-                    } else {
-                        HStack(spacing: Spacing.sm) {
-                            Image(systemName: "trash")
-                                .font(.system(size: 15, weight: .semibold))
-                            Text("Delete")
-                                .font(.buttonLabel)
-                        }
-                    }
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 15, weight: .semibold))
+                    Text("Delete")
+                        .font(.buttonLabel)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
@@ -231,7 +225,6 @@ struct ServiceDetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: Radius.button))
             }
             .buttonStyle(.plain)
-            .disabled(viewModel.isDeleting)
         }
         .padding(.horizontal, Spacing.outer)
         .padding(.vertical, Spacing.md)

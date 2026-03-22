@@ -82,7 +82,10 @@ struct ServiceHistoryView: View {
                                 event: event,
                                 vehicle: viewModel.vehicle,
                                 previousMileage: previousMileageFor(event),
-                                onDeleted: { viewModel.removeEvent(event) },
+                                onDeleted: {
+                                    viewModel.removeEvent(event)
+                                    Task { await viewModel.loadInitial() }
+                                },
                                 onUpdated: { updated in viewModel.replaceEvent(event, with: updated) }
                             )) {
                                 ServiceEventRowView(
